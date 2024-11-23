@@ -16,7 +16,6 @@ const pool = new Pool({
   },
 });
 
-
 // Routes
 
 // Health check
@@ -37,21 +36,41 @@ app.get('/api/scores', async (req, res) => {
 
 // Add a new score
 app.post('/api/scores', async (req, res) => {
-  const { name, country, score, platform } = req.body;
+  const { name, country, score, platform, device_id } = req.body;
 
-  if (!name || !country || !score || !platform) {
-    return res.status(400).json({ error: 'All fields are required' });
+  if (!name || !country || !score || !platform || !device_id) {
+    return res.status(400).json({ error: 'Name, country, score, platform, and device_id are required' });
   }
 
   try {
-    const result = await pool.query(
-      'INSERT INTO scores (name, country, score, platform) VALUES ($1, $2, $3, $4) RETURNING *',
-      [name, country, score, platform]
-    );
-    res.status(201).json(result.rows[0]);
+    // Check if the device has already submitted a score
+    const result = await pool.query('SELECT * FROM scores WHERE device_id = $1', [device_id]);
+
+    if (result.rows.length > 0) {
+      // If the device has already submitted a score, check if it's higher
+      const currentHighScore = result.rows[0].score;
+
+      if (score > currentHighScore) {
+        // If the new score is higher, update the score
+        await pool.query(
+          'UPDATE scores SET name = $1, country = $2, score = $3, platform = $4 WHERE device_id = $5',
+          [name, country, score, platform, device_id]
+        );
+        res.status(200).json({ message: 'High score updated successfully' });
+      } else {
+        res.status(200).json({ message: 'High score not updated (current score is higher)' });
+      }
+    } else {
+      // If the device hasn't submitted a score before, insert the score
+      await pool.query(
+        'INSERT INTO scores (name, country, score, platform, device_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [name, country, score, platform, device_id]
+      );
+      res.status(201).json({ message: 'High score added successfully' });
+    }
   } catch (err) {
-    console.error('Error adding score:', err);
-    res.status(500).json({ error: 'Failed to add score' });
+    console.error('Error adding or updating score:', err);
+    res.status(500).json({ error: 'Failed to submit high score' });
   }
 });
 
