@@ -43,6 +43,13 @@ app.post('/api/scores', async (req, res) => {
   }
 
   try {
+    // Check if the name already exists in the database
+    const nameCheck = await pool.query('SELECT * FROM scores WHERE name = $1', [name]);
+
+    if (nameCheck.rows.length > 0) {
+      return res.status(400).json({ error: 'Name already taken. Please choose a different name.' });
+    }
+
     // Check if the device has already submitted a score
     const result = await pool.query('SELECT * FROM scores WHERE device_id = $1', [device_id]);
 
@@ -73,6 +80,7 @@ app.post('/api/scores', async (req, res) => {
     res.status(500).json({ error: 'Failed to submit high score' });
   }
 });
+
 
 // Delete all scores (admin use)
 app.delete('/api/scores', async (req, res) => {
