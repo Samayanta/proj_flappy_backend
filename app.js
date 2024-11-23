@@ -10,11 +10,12 @@ app.use(cors());
 
 // PostgreSQL connection
 const pool = new Pool({
-  connectionString: 'postgresql://flappybird_db_user:s4Qo19ZZmNcNsF6fwI9C0nNwd5Zo5kUS@dpg-ct0rslu8ii6s73f9e4rg-a.oregon-postgres.render.com/flappybird_db',
+  connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, // Required for Render's SSL
+    rejectUnauthorized: false,
   },
 });
+
 
 // Routes
 
