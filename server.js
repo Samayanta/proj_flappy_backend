@@ -43,13 +43,6 @@ app.post('/api/scores', async (req, res) => {
   }
 
   try {
-    // Check if the name already exists in the database
-    const nameCheck = await pool.query('SELECT * FROM scores WHERE name = $1', [name]);
-
-    if (nameCheck.rows.length > 0) {
-      return res.status(400).json({ error: 'Name already taken. Please choose a different name.' });
-    }
-
     // Check if the device has already submitted a score
     const result = await pool.query('SELECT * FROM scores WHERE device_id = $1', [device_id]);
 
@@ -81,7 +74,6 @@ app.post('/api/scores', async (req, res) => {
   }
 });
 
-
 // Delete all scores (admin use)
 app.delete('/api/scores', async (req, res) => {
   try {
@@ -90,6 +82,32 @@ app.delete('/api/scores', async (req, res) => {
   } catch (err) {
     console.error('Error deleting scores:', err);
     res.status(500).json({ error: 'Failed to delete scores' });
+  }
+});
+
+
+// Check if name is already taken
+app.post('/api/check-name', async (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+
+  try {
+    // Check if the name already exists
+    const result = await pool.query('SELECT * FROM scores WHERE name = $1', [name]);
+
+    if (result.rows.length > 0) {
+      // Name is already taken
+      res.status(400).json({ error: 'This name is already taken. Please choose another one.' });
+    } else {
+      // Name is available
+      res.status(200).json({ message: 'Name is available' });
+    }
+  } catch (err) {
+    console.error('Error checking name:', err);
+    res.status(500).json({ error: 'Failed to check name availability' });
   }
 });
 
