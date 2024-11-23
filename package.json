@@ -1,12 +1,20 @@
 {
   "name": "backend_flappy",
   "version": "1.0.0",
+  "description": "Backend server for Flappy Bird score tracking and leaderboard.",
   "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["flappybird", "backend", "leaderboard", "nodejs"],
+  "author": "Samayanta Raj Ghimire",
   "license": "ISC",
-  "description": ""
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.10.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
 }
